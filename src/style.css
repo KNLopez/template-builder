@@ -1,83 +1,149 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 @import "tailwindcss";
 
 
-:root {
-  font-family: Inter, system-ui, Avenir, Helvetica, Arial, sans-serif;
-  line-height: 1.5;
-  font-weight: 400;
 
-  color-scheme: light dark;
-  color: rgba(255, 255, 255, 0.87);
-  background-color: #242424;
-
-  font-synthesis: none;
-  text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
+/* Add custom styles for the builder */
+.page {
+  @apply min-h-[1056px] w-[816px] border border-gray-200 mx-auto bg-white p-8 pb-20 mb-4 relative transition-colors shadow-sm;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+.page:hover {
+  @apply border-blue-300;
 }
 
-body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
+.page-header {
+  @apply flex justify-between items-center mb-4 text-gray-500 text-sm;
 }
 
-h1 {
-  font-size: 3.2em;
-  line-height: 1.1;
+.page-number {
+  @apply font-medium;
 }
 
-button {
-  border-radius: 8px;
-  border: 1px solid transparent;
-  padding: 0.6em 1.2em;
-  font-size: 1em;
-  font-weight: 500;
-  font-family: inherit;
-  background-color: #1a1a1a;
-  cursor: pointer;
-  transition: border-color 0.25s;
-}
-button:hover {
-  border-color: #646cff;
-}
-button:focus,
-button:focus-visible {
-  outline: 4px auto -webkit-focus-ring-color;
+.page-drag-handle {
+  @apply cursor-move p-1 rounded bg-gray-100 opacity-0 group-hover:opacity-100 transition-opacity;
 }
 
-.card {
-  padding: 2em;
+.builder-row {
+  @apply flex w-full min-h-[50px] p-2 mb-2 transition-colors;
 }
 
-#app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
+.row-hover {
+  @apply bg-gray-50/50;
 }
 
-@media (prefers-color-scheme: light) {
-  :root {
-    color: #213547;
-    background-color: #ffffff;
-  }
-  a:hover {
-    color: #747bff;
-  }
-  button {
-    background-color: #f9f9f9;
-  }
+.builder-column {
+  @apply min-h-[100px] p-2 transition-all flex flex-col;
+}
+
+.builder-element {
+  @apply relative pt-2;
+}
+
+.builder-canvas {
+  @apply bg-gray-100 min-h-screen p-8;
+}
+
+.add-element-button {
+  @apply w-full h-full flex flex-col items-center justify-center text-gray-400 hover:text-gray-600 border border-dashed border-gray-200 rounded-lg transition-colors;
+}
+
+.modal-overlay {
+  @apply fixed inset-0 bg-black flex items-center justify-center z-50;
+}
+
+.modal-content {
+  @apply bg-white rounded-lg p-6 w-[500px] max-w-[90vw] max-h-[80vh] overflow-y-auto;
+}
+
+.layout-option {
+  @apply p-4 border rounded hover:bg-gray-50 flex flex-col items-center transition-colors;
+}
+
+.element-option {
+  @apply p-4 border rounded hover:bg-gray-50 flex flex-col items-center transition-colors;
+}
+
+/* Add styles for empty columns */
+.builder-column:empty {
+  @apply bg-gray-50;
+}
+
+/* Add hover effect for layout picker */
+.layout-option:hover {
+  @apply bg-gray-50;
+}
+
+.add-row-button {
+  @apply absolute bottom-2 left-1/2 transform -translate-x-1/2 flex justify-center z-20;
+}
+
+.element-drag-handle,
+.element-delete-button {
+  display: none;
+}
+
+.image-uploader {
+  @apply flex flex-col items-center;
+}
+
+/* Add style for text elements */
+.builder-element [contenteditable] {
+  @apply min-h-[1em] focus:outline-none focus:ring-1 focus:ring-blue-200 rounded px-1;
+}
+
+.template-preview {
+  @apply p-4 border rounded-lg hover:border-blue-500 transition-colors text-left;
+}
+
+.preview-container {
+  @apply bg-gray-50 rounded overflow-hidden;
+}
+
+/* Text editor styles */
+.text-toolbar {
+  @apply absolute -top-10 left-0 bg-white rounded-lg shadow-lg p-1.5 flex items-center gap-2 z-10;
+}
+
+.toolbar-btn {
+  @apply p-1 rounded hover:bg-gray-100 transition-colors;
+}
+
+.add-more-elements-button {
+  @apply w-full mt-4 py-2 px-4 border border-dashed border-gray-200 rounded-lg 
+         text-gray-400 hover:text-gray-600 hover:border-gray-300 
+         transition-colors flex items-center justify-center gap-2 text-sm
+         transition-opacity duration-200 mb-4;
+}
+
+.element-delete-button {
+  @apply absolute top-1 right-1 p-1 rounded bg-gray-100 opacity-0 
+         group-hover:opacity-100 transition-opacity text-red-500 
+         hover:bg-red-50;
+}
+
+/* Update element controls styling */
+.element-controls {
+  @apply absolute -top-3 right-2 flex items-center gap-1 bg-white rounded-md shadow-sm 
+         opacity-0 group-hover:opacity-100 transition-opacity border border-gray-100 z-10;
+}
+
+.control-button {
+  @apply p-1.5 text-gray-500 hover:text-gray-700 transition-colors;
+}
+
+.control-button.move {
+  @apply cursor-move;
+}
+
+.control-button.delete {
+  @apply hover:text-red-500;
+}
+
+/* Add style for the draggable container in columns */
+.builder-column > .draggable {
+  @apply flex-grow;
 }
