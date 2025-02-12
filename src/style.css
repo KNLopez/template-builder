@@ -163,3 +163,16 @@
   @apply absolute -top-3 right-2 flex items-center gap-1 bg-white rounded-md shadow-sm 
          opacity-0 group-hover:opacity-100 transition-opacity border border-gray-100 z-10;
 }
+
+.template-badge {
+  @apply px-2 py-0.5 bg-purple-100 text-purple-700 text-xs rounded-full 
+         border border-purple-200 font-medium;
+}
+
+.page.template {
+  @apply border-purple-200 bg-purple-50/20;
+}
+
+.page.template:hover {
+  @apply border-purple-300;
+}

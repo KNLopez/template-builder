@@ -17,7 +17,12 @@
           >
             <!-- Page Header -->
             <div class="page-header">
-              <div class="page-number">Page {{ index + 1 }}</div>
+              <div class="flex items-center gap-2">
+                <div class="page-number">Page {{ index + 1 }}</div>
+                <div v-if="page.isTemplate" class="template-badge">
+                  Template
+                </div>
+              </div>
               <div class="page-drag-handle">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
@@ -155,7 +160,7 @@
       </div>
 
       <!-- Add New Page Button (shown when there are existing pages) -->
-      <div v-if="pages.length > 0" class="flex justify-center mt-8">
+      <div v-if="pages.length > 0" class="flex justify-center mt-8 gap-4">
         <button 
           @click="addPage"
           class="px-6 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors flex items-center gap-2"
@@ -165,6 +170,85 @@
           </svg>
           Add New Page
         </button>
+        <button 
+          @click="addTemplatePage"
+          class="px-6 py-3 bg-purple-100 hover:bg-purple-200 text-purple-700 rounded-lg transition-colors flex items-center gap-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" />
+          </svg>
+          Add Template Page
+        </button>
+      </div>
+    </div>
+
+    <!-- Add this after the builder-canvas div, before the modals -->
+    <div class="fixed top-4 right-4 z-30">
+      <button 
+        @click="showImportModal = true"
+        class="px-4 py-2 bg-green-500 text-white rounded-lg shadow-lg hover:bg-green-600 transition-colors flex items-center gap-2"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+        </svg>
+        Import Data
+      </button>
+    </div>
+
+    <!-- Add this new modal -->
+    <div v-if="showImportModal" class="modal-overlay">
+      <div class="modal-content">
+        <h3 class="text-lg font-semibold mb-4">Import Test Data</h3>
+        <div class="space-y-4">
+          <div>
+            <label class="block text-sm font-medium text-gray-700 mb-1">JSON Data</label>
+            <textarea
+              v-model="importData"
+              rows="10"
+              class="w-full px-3 py-2 border rounded-md font-mono text-sm"
+              placeholder="Paste your JSON data here"
+            ></textarea>
+          </div>
+          <div class="flex items-center gap-2 text-sm text-gray-500">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+            <span>This will replace mapped elements with your data</span>
+          </div>
+          <div class="flex items-center gap-2">
+            <input 
+              type="checkbox" 
+              id="generatePages"
+              v-model="generatePagesFromData"
+              class="rounded text-purple-500"
+            >
+            <label for="generatePages" class="text-sm text-gray-700">
+              Generate pages from array data using template
+            </label>
+          </div>
+        </div>
+        <div class="flex justify-between mt-4">
+          <button 
+            @click="showSampleData"
+            class="px-4 py-2 text-blue-500 hover:text-blue-600"
+          >
+            Load Sample Data
+          </button>
+          <div class="flex gap-2">
+            <button 
+              @click="showImportModal = false"
+              class="px-4 py-2 bg-gray-200 rounded hover:bg-gray-300"
+            >
+              Cancel
+            </button>
+            <button 
+              @click="importTestData"
+              class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600"
+            >
+              Import
+            </button>
+          </div>
+        </div>
       </div>
     </div>
 
@@ -260,6 +344,9 @@ const hoveredPage = ref(null)
 const activeColumn = ref(null)
 const activePageId = ref(null)
 const activeTab = ref('Elements')
+const showImportModal = ref(false)
+const importData = ref('')
+const generatePagesFromData = ref(false)
 
 // Predefined column layouts
 const columnLayouts = [
@@ -372,5 +459,66 @@ const handleColumnChange = (column: any) => {
   } else {
     column.type = 'content'
   }
+}
+
+const showSampleData = () => {
+  const sampleData = {
+    user: {
+      name: 'John Doe',
+      email: 'john@example.com',
+      title: 'Senior Developer'
+    },
+    company: {
+      name: 'Acme Inc',
+      address: '123 Main St',
+      city: 'San Francisco',
+      description: 'Leading provider of innovative solutions'
+    },
+    project: {
+      name: 'Website Redesign',
+      status: 'In Progress',
+      completion: '75%'
+    }
+  }
+  importData.value = JSON.stringify(sampleData, null, 2)
+}
+
+const importTestData = () => {
+  try {
+    const data = JSON.parse(importData.value)
+    applyDataToElements(data)
+    showImportModal.value = false
+  } catch (error) {
+    alert('Invalid JSON data')
+  }
+}
+
+const applyDataToElements = (data: any) => {
+  // Helper function to get nested object value
+  const getNestedValue = (obj: any, path: string) => {
+    return path.split('.').reduce((acc, part) => acc && acc[part], obj)
+  }
+
+  // Recursively process all pages, rows, columns, and elements
+  pages.value.forEach(page => {
+    page.rows.forEach(row => {
+      row.columns.forEach(column => {
+        if (column.elements) {
+          column.elements.forEach(element => {
+            if (element.mapping) {
+              const value = getNestedValue(data, element.mapping)
+              if (value !== undefined) {
+                element.content = String(value)
+              }
+            }
+          })
+        }
+      })
+    })
+  })
+}
+
+const addTemplatePage = () => {
+  // Implementation of adding a template page
 }
 </script> 
