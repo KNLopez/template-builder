@@ -64,25 +64,6 @@
                         >
                           <template #item="{ element }">
                             <div class="builder-element group">
-                              <!-- Element Controls -->
-                              <div class="element-controls">
-                                <button 
-                                  class="control-button delete"
-                                  @click="deleteElement(column, element)"
-                                >
-                                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                                  </svg>
-                                </button>
-                                <div class="w-px h-4 bg-gray-200"></div>
-                                <div class="control-button move">
-                                  <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                                  </svg>
-                                </div>
-                              </div>
-
-                              <!-- Element Content -->
                               <MappableElement 
                                 :element="element"
                                 @update:content="element.content = $event"
@@ -376,6 +357,11 @@ const columnLayouts = [
   }
 ]
 
+// Add this helper function at the top level
+const getNestedValue = (obj: any, path: string) => {
+  return path.split('.').reduce((acc, part) => acc && acc[part], obj)
+}
+
 const addPage = () => {
   pages.value.push({
     id: Date.now(),
@@ -462,43 +448,103 @@ const handleColumnChange = (column: any) => {
 }
 
 const showSampleData = () => {
-  const sampleData = {
-    user: {
-      name: 'John Doe',
-      email: 'john@example.com',
-      title: 'Senior Developer'
+  const sampleData = [
+    {
+      id: "spot147",
+      name: "Location 147",
+      coordinates: {
+        lat: -76.4305,
+        lng: -8.4671
+      },
+      status: "active",
+      lastUpdated: "2025-02-03T17:24:45Z",
+      measurements: {
+        temperature: 21.4,
+        humidity: 34,
+        pressure: 1018.1
+      },
+      metadata: {
+        deviceId: "dev_433",
+        installationDate: "2024-01-20",
+        type: "indoor"
+      },
+      images: [
+        {
+          id: "img147_1",
+          url: "https://robohash.org/Location 147",
+          caption: "Close-up detail",
+          timestamp: "2025-02-11T17:17:45Z"
+        }
+      ]
     },
-    company: {
-      name: 'Acme Inc',
-      address: '123 Main St',
-      city: 'San Francisco',
-      description: 'Leading provider of innovative solutions'
-    },
-    project: {
-      name: 'Website Redesign',
-      status: 'In Progress',
-      completion: '75%'
-    }
-  }
+    // Add more sample items...
+  ]
   importData.value = JSON.stringify(sampleData, null, 2)
 }
 
 const importTestData = () => {
   try {
     const data = JSON.parse(importData.value)
-    applyDataToElements(data)
+    
+    if (generatePagesFromData.value) {
+      if (!Array.isArray(data)) {
+        alert('Data must be an array to generate pages')
+        return
+      }
+      generatePagesFromTemplate(data)
+    } else {
+      applyDataToElements(data)
+    }
+    
     showImportModal.value = false
   } catch (error) {
     alert('Invalid JSON data')
   }
 }
 
-const applyDataToElements = (data: any) => {
-  // Helper function to get nested object value
-  const getNestedValue = (obj: any, path: string) => {
-    return path.split('.').reduce((acc, part) => acc && acc[part], obj)
+const generatePagesFromTemplate = (dataArray: any[]) => {
+  // Find template page
+  const templatePage = pages.value.find(p => p.isTemplate)
+  if (!templatePage) {
+    alert('Please create a template page first')
+    return
   }
 
+  // Remove any previously generated pages
+  pages.value = pages.value.filter(p => p.isTemplate || !p.generatedFromTemplate)
+
+  // Generate new pages from template for each data item
+  dataArray.forEach((dataItem, index) => {
+    const newPage = JSON.parse(JSON.stringify(templatePage))
+    newPage.id = Date.now() + index
+    newPage.isTemplate = false
+    newPage.generatedFromTemplate = true
+    
+    // Apply the data to the new page
+    applyDataToPage(newPage, dataItem)
+    
+    pages.value.push(newPage)
+  })
+}
+
+const applyDataToPage = (page: any, data: any) => {
+  page.rows.forEach((row: any) => {
+    row.columns.forEach((column: any) => {
+      if (column.elements) {
+        column.elements.forEach((element: any) => {
+          if (element.mapping) {
+            const value = getNestedValue(data, element.mapping)
+            if (value !== undefined) {
+              element.content = String(value)
+            }
+          }
+        })
+      }
+    })
+  })
+}
+
+const applyDataToElements = (data: any) => {
   // Recursively process all pages, rows, columns, and elements
   pages.value.forEach(page => {
     page.rows.forEach(row => {
@@ -519,6 +565,50 @@ const applyDataToElements = (data: any) => {
 }
 
 const addTemplatePage = () => {
-  // Implementation of adding a template page
+  pages.value.push({
+    id: Date.now(),
+    isTemplate: true,
+    rows: []
+  })
+}
+
+// Replace the sample data with available fields structure
+const availableFields = {
+  id: 'string',
+  name: 'string',
+  coordinates: {
+    lat: 'number',
+    lng: 'number'
+  },
+  status: 'string',
+  lastUpdated: 'string',
+  measurements: {
+    temperature: 'number',
+    humidity: 'number',
+    pressure: 'number'
+  },
+  metadata: {
+    deviceId: 'string',
+    installationDate: 'string',
+    type: 'string'
+  },
+  images: [{
+    id: 'string',
+    url: 'string',
+    caption: 'string',
+    timestamp: 'string'
+  }]
+}
+
+// Add new refs
+const expandedFields = ref<Record<string, boolean>>({})
+
+// Add new methods
+const toggleField = (key: string) => {
+  expandedFields.value[key] = !expandedFields.value[key]
+}
+
+const selectField = (key: string) => {
+  mappingKey.value = key
 }
 </script> 

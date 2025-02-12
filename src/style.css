@@ -176,3 +176,16 @@
 .page.template:hover {
   @apply border-purple-300;
 }
+
+/* Mapping tree styles */
+.mapping-tree {
+  @apply max-h-[400px] overflow-y-auto;
+}
+
+.mapping-field {
+  @apply text-sm text-gray-700;
+}
+
+.mapping-field svg {
+  @apply text-gray-400;
+}
