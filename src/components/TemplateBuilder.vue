@@ -78,19 +78,13 @@
                               </div>
 
                               <!-- Element Content -->
-                              <TextEditor 
-                                v-if="element.type === 'text'" 
+                              <MappableElement 
                                 :element="element"
                                 @update:content="element.content = $event"
                                 @update:style="element.style = $event"
+                                @update:mapping="element.mapping = $event"
+                                @delete="deleteElement(column, element)"
                               />
-                              <div v-else-if="element.type === 'image'" class="relative">
-                                <img 
-                                  :src="element.content" 
-                                  alt="" 
-                                  class="w-full h-auto"
-                                />
-                              </div>
                             </div>
                           </template>
 
@@ -257,6 +251,7 @@ import draggable from 'vuedraggable'
 import ImageUploader from './ImageUploader.vue'
 import ColumnTemplates from './ColumnTemplates.vue'
 import TextEditor from './TextEditor.vue'
+import MappableElement from './MappableElement.vue'
 
 const pages = ref([])
 const showLayoutPicker = ref(false)
