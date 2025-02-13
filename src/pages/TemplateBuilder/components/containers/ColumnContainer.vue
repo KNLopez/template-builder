@@ -1,10 +1,13 @@
 <template>
   <div
     class="column-container group"
+    :class="{
+      'is-editing': isEditing,
+      'drag-over': isDragOver,
+    }"
     @contextmenu.prevent="showContextMenu"
     @dragover.prevent="handleDragOver"
     @drop.prevent="handleDrop"
-    :class="{ 'drag-over': isDragOver }"
   >
     <div v-if="widget.children.length === 0" class="empty-column">
       <button class="add-widget-btn" @click="$emit('show-widgets')">
@@ -19,20 +22,9 @@
         :is="getWidgetComponent(child.type)"
         :widget="child"
         @update="updateChild"
+        @editing="handleChildEditing"
       />
     </template>
-
-    <div v-if="isEditingWidth" class="width-editor">
-      <input
-        type="range"
-        min="1"
-        max="12"
-        :value="widget.width"
-        @input="updateWidth"
-        class="width-slider"
-      />
-      <div class="width-preview">{{ widget.width }}/12 columns</div>
-    </div>
 
     <div
       v-if="contextMenuVisible"
@@ -48,7 +40,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from "vue";
+import { ref, markRaw } from "vue";
 import { v4 as uuidv4 } from "uuid";
 import type { ColumnWidget, Widget, WidgetType } from "@/types/widgets";
 import {
@@ -57,6 +49,7 @@ import {
   TrashIcon,
   PlusCircleIcon,
 } from "@heroicons/vue/24/outline";
+import TextWidget from "../widgets/TextWidget.vue";
 
 const props = defineProps<{
   widget: ColumnWidget;
@@ -72,21 +65,21 @@ const contextMenuVisible = ref(false);
 const contextMenuX = ref(0);
 const contextMenuY = ref(0);
 const isDragOver = ref(false);
+const isEditing = ref(false);
 
 const getWidgetComponent = (type: WidgetType) => {
   const components = {
-    text: () => import("../widgets/TextWidget.vue"),
+    text: markRaw(TextWidget),
     image: () => import("../widgets/ImageWidget.vue"),
   };
   return components[type];
 };
 
 const addWidget = (type: WidgetType) => {
-  const newWidget: Widget = {
+  const newWidget = {
     id: uuidv4(),
     type,
-    content: type === "text" ? "Click to edit text" : "",
-    position: { x: 0, y: 0 },
+    content: type === "text" ? "<p>Click to edit text</p>" : "",
   };
 
   emit("update", {
@@ -181,6 +174,10 @@ const handleDrop = (event: DragEvent) => {
     addWidget(widgetType);
   }
 };
+
+const handleChildEditing = (editing: boolean) => {
+  isEditing.value = editing;
+};
 </script>
 
 <style scoped>
@@ -192,7 +189,11 @@ const handleDrop = (event: DragEvent) => {
   cursor: grab;
 }
 
-.column-container:active {
+.column-container.is-editing {
+  cursor: default;
+}
+
+.column-container:not(.is-editing):active {
   cursor: grabbing;
 }
 

@@ -28,11 +28,11 @@
             ghost-class="sortable-ghost"
             chosen-class="sortable-chosen"
             drag-class="sortable-drag"
-            @end="handleDragEnd"
           >
             <template #item="{ element: row, index }">
               <TransitionGroup tag="div" class="rows-container" name="list">
                 <RowContainer
+                  :key="row.id"
                   :widget="row"
                   @update="updateChild"
                   @delete="deleteChild"

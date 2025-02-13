@@ -101,11 +101,11 @@
         ghost-class="sortable-ghost"
         chosen-class="sortable-chosen"
         drag-class="sortable-drag"
-        @end="handleDragEnd"
       >
         <template #item="{ element: column }">
           <TransitionGroup tag="div" class="column-wrapper" name="list">
             <ColumnContainer
+              :key="column.id"
               :widget="column"
               @update="updateChild"
               @delete="deleteChild"
@@ -269,10 +269,6 @@ const confirmColumnUpdate = () => {
   applyColumnUpdate(pendingColumnCount.value);
   showWarning.value = false;
   pendingColumnCount.value = 0;
-};
-
-const handleDragEnd = () => {
-  // Optional: Add any drag end logic here
 };
 </script>
 

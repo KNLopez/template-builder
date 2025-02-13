@@ -15,10 +15,15 @@
             @dragstart="handleDragStart($event, widget.type)"
           >
             <TransitionGroup name="fade">
-              <div class="widget-icon">
-                <component :is="widget.icon" class="w-5 h-5" />
+              <div
+                :key="widget.type"
+                class="w-full h-full flex items-center gap-3"
+              >
+                <div class="widget-icon">
+                  <component :is="widget.icon" class="w-5 h-5" />
+                </div>
+                <span class="widget-label">{{ widget.label }}</span>
               </div>
-              <span class="widget-label">{{ widget.label }}</span>
             </TransitionGroup>
           </div>
         </div>

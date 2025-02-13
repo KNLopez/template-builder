@@ -11,11 +11,11 @@
         ghost-class="sortable-ghost"
         chosen-class="sortable-chosen"
         drag-class="sortable-drag"
-        @end="handleDragEnd"
       >
         <template #item="{ element: page }">
           <TransitionGroup tag="div" class="pages-container" name="list">
             <PageContainer
+              :key="page.id"
               :widget="page"
               @update="updatePage"
               @delete="deletePage"
