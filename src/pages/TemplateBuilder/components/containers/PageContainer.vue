@@ -1,10 +1,14 @@
 <template>
-  <div class="page-wrapper group/page">
-    <ContainerControls
-      type="page"
-      @delete="$emit('delete')"
-    />
+  <div 
+    class="page-wrapper group/page"
+    @mousemove="handleMouseMove"
+    @mouseleave="hoverPosition = null"
+  >
     <div class="page-container">
+      <ContainerControls
+        type="page"
+        @delete="$emit('delete')"
+      />
       <div class="page-content">
         <template v-if="widget.children.length === 0">
           <div class="empty-state">
@@ -34,6 +38,32 @@
         </template>
       </div>
     </div>
+
+    <!-- Add page button before -->
+    <div 
+      v-if="hoverPosition === 'top'"
+      class="add-page-indicator top"
+    >
+      <button 
+        class="add-page-btn"
+        @click="$emit('add-page', 'before')"
+      >
+        <PlusIcon class="w-4 h-4" />
+      </button>
+    </div>
+
+    <!-- Add page button after -->
+    <div 
+      v-if="hoverPosition === 'bottom'"
+      class="add-page-indicator bottom"
+    >
+      <button 
+        class="add-page-btn"
+        @click="$emit('add-page', 'after')"
+      >
+        <PlusIcon class="w-4 h-4" />
+      </button>
+    </div>
   </div>
 </template>
 
@@ -43,6 +73,7 @@ import { PlusIcon, PlusCircleIcon } from '@heroicons/vue/24/outline';
 import type { PageWidget, RowWidget } from '@/types/widgets';
 import ContainerControls from './ContainerControls.vue';
 import RowContainer from './RowContainer.vue';
+import { ref } from 'vue';
 
 const props = defineProps<{
   widget: PageWidget
@@ -51,7 +82,10 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'update', widget: PageWidget): void
   (e: 'delete'): void
+  (e: 'add-page', position: 'before' | 'after'): void
 }>();
+
+const hoverPosition = ref<'top' | 'bottom' | null>(null);
 
 const addRowAt = (index: number) => {
   const newRow: RowWidget = {
@@ -94,17 +128,66 @@ const handleAddRow = (index: number, position: 'before' | 'after') => {
   const newIndex = position === 'before' ? index : index + 1;
   addRowAt(newIndex);
 };
+
+const handleMouseMove = (event: MouseEvent) => {
+  const element = event.currentTarget as HTMLElement;
+  const rect = element.getBoundingClientRect();
+  const y = event.clientY - rect.top;
+  
+  // Show button when mouse is within 40px of top or bottom edge
+  if (y < 40) {
+    hoverPosition.value = 'top';
+  } else if (y > rect.height - 40) {
+    hoverPosition.value = 'bottom';
+  } else {
+    hoverPosition.value = null;
+  }
+};
 </script>
 
 <style scoped>
 @reference "tailwindcss";
 
 .page-wrapper {
-  @apply relative w-[816px] mx-auto;
+  @apply relative w-[816px] mx-auto py-8;
 }
 
 .page-container {
-  @apply min-h-[1056px] bg-white shadow-sm;
+  @apply relative min-h-[1056px] bg-white shadow-sm;
+}
+
+.add-page-indicator {
+  @apply absolute left-0 right-0 flex justify-center
+         transition-all duration-200 z-20;
+}
+
+.add-page-indicator.top {
+  @apply -top-6;
+}
+
+.add-page-indicator.bottom {
+  @apply -bottom-6;
+}
+
+.add-page-btn {
+  @apply w-8 h-8 rounded-full bg-white 
+         shadow-[0_2px_4px_rgba(0,0,0,0.1)]
+         flex items-center justify-center
+         text-blue-500 hover:text-blue-600
+         hover:shadow-[0_4px_8px_rgba(0,0,0,0.1)]
+         hover:scale-110
+         cursor-pointer
+         transition-all duration-200;
+}
+
+/* Add hover area for better interaction */
+.add-page-btn::before {
+  @apply content-[''] absolute -inset-2;
+}
+
+/* Show indicators on page hover */
+.group-hover\/page .add-page-indicator {
+  @apply opacity-100;
 }
 
 .page-content {

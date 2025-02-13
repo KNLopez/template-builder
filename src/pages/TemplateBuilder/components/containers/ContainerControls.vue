@@ -1,19 +1,6 @@
 <template>
-  <div 
-    class="controls"
-    :class="{
-      'controls-page': type === 'page',
-      'controls-row': type === 'row'
-    }"
-  >
+  <div class="controls">
     <div class="controls-inner">
-      <button
-        v-if="type === 'column'"
-        class="control-btn"
-        @click="$emit('edit')"
-      >
-        <Squares2X2Icon class="w-5 h-5" />
-      </button>
       <button
         class="control-btn"
         @click="$emit('delete')"
@@ -25,15 +12,9 @@
 </template>
 
 <script setup lang="ts">
-import { Squares2X2Icon, TrashIcon } from '@heroicons/vue/24/outline';
-import type { WidgetType } from '@/types/widgets';
-
-defineProps<{
-  type: WidgetType
-}>();
+import { TrashIcon } from '@heroicons/vue/24/outline';
 
 defineEmits<{
-  (e: 'edit'): void
   (e: 'delete'): void
 }>();
 </script>
@@ -42,16 +23,9 @@ defineEmits<{
 @reference "tailwindcss";
 
 .controls {
-  @apply absolute opacity-0 bg-white/80 rounded-md
-         transition-all duration-200 ease-out z-30;
-}
-
-.controls-page {
-  @apply -top-10 right-0;
-}
-
-.controls-row {
-  @apply top-2 right-2;
+  @apply absolute bg-white/80 rounded-md
+         transition-all duration-200 ease-out z-30
+         -top-12 right-0;
 }
 
 .controls-inner {
@@ -66,4 +40,4 @@ defineEmits<{
 .group:hover .controls {
   @apply opacity-100;
 }
-</style> 
+</style>

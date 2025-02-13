@@ -1,11 +1,15 @@
 <template>
   <div class="template-builder">
     <div class="document-container">
-      <div class="pages-container group">
-        <PageContainer
-          :widget="page"
-          @update="updatePage"
-        />
+      <div class="pages-container">
+        <template v-for="(page, index) in pages" :key="page.id">
+          <PageContainer
+            :widget="page"
+            @update="updatePage"
+            @delete="deletePage"
+            @add-page="(position) => handleAddPage(index, position)"
+          />
+        </template>
       </div>
     </div>
     
@@ -27,8 +31,28 @@ const page = ref<PageWidget>({
   children: []
 });
 
+const pages = ref<PageWidget[]>([page.value]);
+
 const updatePage = (updatedPage: PageWidget) => {
-  page.value = updatedPage;
+  const index = pages.value.findIndex(p => p.id === updatedPage.id);
+  if (index !== -1) {
+    pages.value[index] = updatedPage;
+  }
+};
+
+const deletePage = (id: string) => {
+  pages.value = pages.value.filter(p => p.id !== id);
+};
+
+const handleAddPage = (index: number, position: 'before' | 'after') => {
+  const newPage: PageWidget = {
+    id: uuidv4(),
+    type: 'page',
+    children: []
+  };
+  
+  const newIndex = position === 'before' ? index : index + 1;
+  pages.value.splice(newIndex, 0, newPage);
 };
 </script>
 

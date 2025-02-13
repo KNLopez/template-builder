@@ -133,7 +133,6 @@ import { ref } from 'vue';
 import { v4 as uuidv4 } from 'uuid';
 import { PlusIcon, Squares2X2Icon, TrashIcon } from '@heroicons/vue/24/outline';
 import type { RowWidget, ColumnWidget } from '@/types/widgets';
-import ContainerControls from './ContainerControls.vue';
 import ColumnContainer from './ColumnContainer.vue';
 
 const props = defineProps<{
