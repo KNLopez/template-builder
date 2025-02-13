@@ -26,14 +26,14 @@
       </draggable>
     </div>
 
-    <Sidebar />
+    <Sidebar @add-widget="handleAddWidget" />
   </div>
 </template>
 
 <script setup lang="ts">
 import { ref } from "vue";
 import { v4 as uuidv4 } from "uuid";
-import type { PageWidget } from "@/types/widgets";
+import type { PageWidget, WidgetType } from "@/types/widgets";
 import Sidebar from "./components/Sidebar.vue";
 import PageContainer from "./components/containers/PageContainer.vue";
 import draggable from "vuedraggable";
@@ -67,6 +67,10 @@ const handleAddPage = (index: number, position: "before" | "after") => {
 
   const newIndex = position === "before" ? index : index + 1;
   pages.value.splice(newIndex, 0, newPage);
+};
+
+const handleAddWidget = (type: WidgetType) => {
+  console.log("Add widget:", type);
 };
 </script>
 

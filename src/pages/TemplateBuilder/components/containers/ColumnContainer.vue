@@ -1,16 +1,15 @@
 <template>
-  <div class="column-container group" @contextmenu.prevent="showContextMenu">
+  <div
+    class="column-container group"
+    @contextmenu.prevent="showContextMenu"
+    @dragover.prevent="handleDragOver"
+    @drop.prevent="handleDrop"
+    :class="{ 'drag-over': isDragOver }"
+  >
     <div v-if="widget.children.length === 0" class="empty-column">
-      <div class="widget-options">
-        <div class="widget-option" @click="addWidget('text')">
-          <DocumentTextIcon class="w-8 h-8" />
-          <span>Add Text</span>
-        </div>
-        <div class="widget-option" @click="addWidget('image')">
-          <PhotoIcon class="w-8 h-8" />
-          <span>Add Image</span>
-        </div>
-      </div>
+      <button class="add-widget-btn" @click="$emit('show-widgets')">
+        <PlusCircleIcon class="w-12 h-12" />
+      </button>
     </div>
 
     <template v-else>
@@ -56,6 +55,7 @@ import {
   DocumentTextIcon,
   PhotoIcon,
   TrashIcon,
+  PlusCircleIcon,
 } from "@heroicons/vue/24/outline";
 
 const props = defineProps<{
@@ -65,11 +65,13 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: "update", widget: ColumnWidget): void;
   (e: "delete"): void;
+  (e: "show-widgets"): void;
 }>();
 
 const contextMenuVisible = ref(false);
 const contextMenuX = ref(0);
 const contextMenuY = ref(0);
+const isDragOver = ref(false);
 
 const getWidgetComponent = (type: WidgetType) => {
   const components = {
@@ -162,6 +164,23 @@ const deleteColumn = () => {
   contextMenuVisible.value = false;
   emit("delete", props.widget.id);
 };
+
+const handleDragOver = (event: DragEvent) => {
+  isDragOver.value = true;
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = "copy";
+  }
+};
+
+const handleDrop = (event: DragEvent) => {
+  isDragOver.value = false;
+  if (!event.dataTransfer) return;
+
+  const widgetType = event.dataTransfer.getData("widget-type") as WidgetType;
+  if (widgetType) {
+    addWidget(widgetType);
+  }
+};
 </script>
 
 <style scoped>
@@ -179,11 +198,18 @@ const deleteColumn = () => {
 
 .empty-column {
   @apply h-full border-2 border-dashed border-gray-200 
-         rounded-lg transition-colors;
+         rounded-lg transition-colors
+         flex items-center justify-center;
 }
 
 .group:hover .empty-column {
   @apply border-blue-200;
+}
+
+.add-widget-btn {
+  @apply text-gray-400 hover:text-blue-500
+         transition-colors duration-200
+         p-4 rounded-xl hover:bg-blue-50;
 }
 
 .widget-options {
@@ -225,5 +251,13 @@ const deleteColumn = () => {
          text-sm text-gray-700 hover:bg-gray-50
          transition-colors duration-200
          cursor-pointer;
+}
+
+.drag-over {
+  @apply ring-2 ring-blue-400 ring-offset-2 bg-blue-50;
+}
+
+.empty-column.drag-over {
+  @apply border-blue-400 bg-blue-50;
 }
 </style>

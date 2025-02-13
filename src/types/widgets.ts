@@ -1,4 +1,13 @@
-export type WidgetType = "text" | "image" | "row" | "column" | "page";
+export type WidgetType =
+  | "heading"
+  | "text"
+  | "image"
+  | "video"
+  | "button"
+  | "divider"
+  | "spacer"
+  | "map"
+  | "icon";
 
 export interface BaseWidget {
   id: string;

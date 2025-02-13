@@ -1,40 +1,42 @@
 <template>
   <div class="template-chooser">
     <h1 class="title">Start a new document</h1>
-    
+
     <div class="templates-grid">
-      <div 
-        class="template-card"
-        @click="selectTemplate('blank')"
-      >
+      <div class="template-card" @click="selectTemplate('blank')">
         <div class="preview-container">
-          <img src="../assets/blank-template.svg" alt="Blank template" class="template-preview" />
+          <img
+            src="../assets/blank-template.svg"
+            alt="Blank template"
+            class="template-preview"
+          />
         </div>
         <div class="template-info">
           <h3>Blank</h3>
           <p>Start from an empty page</p>
         </div>
       </div>
-      
+
       <!-- More templates can be added here later -->
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useRouter } from 'vue-router';
+import { useRouter } from "vue-router";
 
 const router = useRouter();
 
 const selectTemplate = (templateId: string) => {
   router.push({
-    name: 'builder',
-    query: { template: templateId }
+    name: "builder",
+    query: { template: templateId },
   });
 };
 </script>
 
 <style scoped>
+@reference "tailwindcss";
 .template-chooser {
   max-width: 1200px;
   margin: 0 auto;
@@ -94,4 +96,4 @@ const selectTemplate = (templateId: string) => {
   color: #6b7280;
   margin: 0.25rem 0 0 0;
 }
-</style> 
+</style>
