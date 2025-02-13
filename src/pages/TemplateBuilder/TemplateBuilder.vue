@@ -39,14 +39,13 @@ import PageContainer from "./components/containers/PageContainer.vue";
 import draggable from "vuedraggable";
 import { TransitionGroup } from "vue";
 
-// Initialize with a single page
-const page = ref<PageWidget>({
-  id: uuidv4(),
-  type: "page",
-  children: [],
-});
-
-const pages = ref<PageWidget[]>([page.value]);
+const pages = ref<PageWidget[]>([
+  {
+    id: uuidv4(),
+    type: "page",
+    children: [],
+  },
+]);
 
 const updatePage = (updatedPage: PageWidget) => {
   const index = pages.value.findIndex((p) => p.id === updatedPage.id);
@@ -68,10 +67,6 @@ const handleAddPage = (index: number, position: "before" | "after") => {
 
   const newIndex = position === "before" ? index : index + 1;
   pages.value.splice(newIndex, 0, newPage);
-};
-
-const handleDragEnd = (event: any) => {
-  // Handle drag end event
 };
 </script>
 

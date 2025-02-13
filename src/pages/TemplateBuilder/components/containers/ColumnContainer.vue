@@ -52,12 +52,10 @@
 import { ref } from "vue";
 import { v4 as uuidv4 } from "uuid";
 import type { ColumnWidget, Widget, WidgetType } from "@/types/widgets";
-import ContainerControls from "./ContainerControls.vue";
 import {
   DocumentTextIcon,
   PhotoIcon,
   TrashIcon,
-  Bars3Icon,
 } from "@heroicons/vue/24/outline";
 
 const props = defineProps<{
@@ -69,7 +67,6 @@ const emit = defineEmits<{
   (e: "delete"): void;
 }>();
 
-const isEditingWidth = ref(false);
 const contextMenuVisible = ref(false);
 const contextMenuX = ref(0);
 const contextMenuY = ref(0);

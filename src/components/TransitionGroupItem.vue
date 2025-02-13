@@ -1,9 +1,2 @@
-<template>
-  <transition-group-item>
-    <slot />
-  </transition-group-item>
-</template>
-
-<script setup lang="ts">
-import { TransitionGroupItem } from 'vue-next-transition-group';
-</script> 
+// This entire component can be removed as we're using Vue's built-in
+TransitionGroup

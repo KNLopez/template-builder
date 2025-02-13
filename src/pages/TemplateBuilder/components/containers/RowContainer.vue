@@ -422,10 +422,6 @@ const handleDragEnd = () => {
   @apply bg-blue-200;
 }
 
-.cursor-move {
-  cursor: move;
-}
-
 .list-move {
   transition: transform 0.3s ease;
 }

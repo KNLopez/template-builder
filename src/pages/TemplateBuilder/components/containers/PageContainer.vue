@@ -30,7 +30,7 @@
             drag-class="sortable-drag"
             @end="handleDragEnd"
           >
-            <template #item="{ element: row }">
+            <template #item="{ element: row, index }">
               <TransitionGroup tag="div" class="rows-container" name="list">
                 <RowContainer
                   :widget="row"
@@ -133,7 +133,7 @@ const deleteChild = (childId: string) => {
 };
 
 const handleAddRow = (index: number, position: "before" | "after") => {
-  const newIndex = position === "before" ? index : index + 1;
+  const newIndex = position === "after" ? index + 1 : index;
   addRowAt(newIndex);
 };
 
@@ -150,10 +150,6 @@ const handleMouseMove = (event: MouseEvent) => {
   } else {
     hoverPosition.value = null;
   }
-};
-
-const handleDragEnd = () => {
-  // Optional: Add any drag end logic here
 };
 </script>
 
