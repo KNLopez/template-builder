@@ -1,0 +1,80 @@
+
+- Always check if the component can be broken down into smaller components.
+- Always use tailwind css for styling.
+- When a component is reusable put them in the src/components folder.
+- src/pages/TemplateBuilder/TemplateBuilder.vue)
+- Always refer to best practices when writing code.
+- When writing code, always consider performance implications.
+- When writing code, always consider readability.
+- When writing code, always consider maintainability.
+- When writing code, always consider scalability.
+- When writing code, always consider security.
+
+# Vue Project Code Style and Organization Rules
+
+## Component Structure
+- Use Vue 3 Composition API with <script setup> syntax for better type inference and performance
+- Break down components into smaller, reusable pieces when they exceed 200 lines
+- Keep components focused on a single responsibility
+- Use TypeScript for better type safety and developer experience
+
+## File Organization
+- Place reusable components in `src/components/`
+- Place page-specific components in `src/pages/{PageName}/components/`
+- Group related features in feature-based folders
+- Keep all interfaces and types in separate `.ts` files under `src/types/`
+
+## Styling
+- Use Tailwind CSS for styling
+- Follow utility-first approach
+- Extract common style patterns into reusable classes
+- Use @apply directive for complex, repeated utility combinations
+- Maintain consistent spacing and sizing using Tailwind's scale
+
+## Best Practices
+- Use props validation with proper TypeScript types
+- Implement proper error handling and loading states
+- Use computed properties for derived state
+- Avoid direct DOM manipulation
+- Use refs instead of reactive for primitive values
+- Implement proper cleanup in onUnmounted hooks
+
+## Performance
+- Use v-show instead of v-if for frequently toggled elements
+- Implement proper key attributes in v-for loops
+- Avoid expensive operations in template expressions
+- Use shallowRef for large objects that don't need deep reactivity
+- Implement virtual scrolling for long lists
+
+## State Management
+- Use provide/inject for shallow component trees
+- Consider Pinia for complex state management
+- Keep state mutations centralized and predictable
+- Implement proper state hydration strategies
+
+## Security
+- Sanitize all user inputs
+- Avoid v-html unless absolutely necessary
+- Use proper CORS policies
+- Implement proper authentication and authorization
+- Never expose sensitive information in client-side code
+
+## Testing
+- Write unit tests for complex components
+- Implement integration tests for critical user flows
+- Use Vue Test Utils for component testing
+- Maintain high test coverage for critical paths
+
+## Code Style
+- Use consistent naming conventions (PascalCase for components, camelCase for properties)
+- Follow Vue's style guide priority A and B rules
+- Use meaningful component and variable names
+- Keep methods short and focused
+- Document complex logic with comments
+
+## Build and Development
+- Use Vite for fast development experience
+- Implement proper code splitting
+- Optimize asset loading
+- Use environment variables for configuration
+- Maintain proper dependency management
