@@ -1,66 +1,60 @@
 <template>
-  <div 
+  <div
     class="page-wrapper group/page"
     @mousemove="handleMouseMove"
     @mouseleave="hoverPosition = null"
   >
     <div class="page-container">
-      <ContainerControls
-        type="page"
-        @delete="$emit('delete')"
-      />
+      <ContainerControls type="page" @delete="$emit('delete')" />
       <div class="page-content">
         <template v-if="widget.children.length === 0">
           <div class="empty-state">
             <div class="empty-content">
-              <button 
-                class="empty-state-btn"
-                @click="addRow"
-              >
+              <button class="empty-state-btn" @click="addRow">
                 <PlusCircleIcon class="w-12 h-12 text-blue-500" />
                 <span class="text-lg mt-2">Add Row</span>
               </button>
             </div>
           </div>
         </template>
-        
+
         <template v-else>
-          <div class="rows-container">
-            <template v-for="(child, index) in widget.children" :key="child.id">
-              <RowContainer
-                :widget="child"
-                @update="updateChild"
-                @delete="deleteChild"
-                @add-row="(position) => handleAddRow(index, position)"
-              />
+          <draggable
+            v-model="rows"
+            class="rows-container"
+            item-key="id"
+            handle=".row-drag-handle"
+            group="rows"
+            ghost-class="sortable-ghost"
+            chosen-class="sortable-chosen"
+            drag-class="sortable-drag"
+            @end="handleDragEnd"
+          >
+            <template #item="{ element: row }">
+              <TransitionGroup tag="div" class="rows-container" name="list">
+                <RowContainer
+                  :widget="row"
+                  @update="updateChild"
+                  @delete="deleteChild"
+                  @add-row="(position) => handleAddRow(index, position)"
+                />
+              </TransitionGroup>
             </template>
-          </div>
+          </draggable>
         </template>
       </div>
     </div>
 
     <!-- Add page button before -->
-    <div 
-      v-if="hoverPosition === 'top'"
-      class="add-page-indicator top"
-    >
-      <button 
-        class="add-page-btn"
-        @click="$emit('add-page', 'before')"
-      >
+    <div v-if="hoverPosition === 'top'" class="add-page-indicator top">
+      <button class="add-page-btn" @click="$emit('add-page', 'before')">
         <PlusIcon class="w-4 h-4" />
       </button>
     </div>
 
     <!-- Add page button after -->
-    <div 
-      v-if="hoverPosition === 'bottom'"
-      class="add-page-indicator bottom"
-    >
-      <button 
-        class="add-page-btn"
-        @click="$emit('add-page', 'after')"
-      >
+    <div v-if="hoverPosition === 'bottom'" class="add-page-indicator bottom">
+      <button class="add-page-btn" @click="$emit('add-page', 'after')">
         <PlusIcon class="w-4 h-4" />
       </button>
     </div>
@@ -68,36 +62,48 @@
 </template>
 
 <script setup lang="ts">
-import { v4 as uuidv4 } from 'uuid';
-import { PlusIcon, PlusCircleIcon } from '@heroicons/vue/24/outline';
-import type { PageWidget, RowWidget } from '@/types/widgets';
-import ContainerControls from './ContainerControls.vue';
-import RowContainer from './RowContainer.vue';
-import { ref } from 'vue';
+import { v4 as uuidv4 } from "uuid";
+import { PlusIcon, PlusCircleIcon } from "@heroicons/vue/24/outline";
+import type { PageWidget, RowWidget } from "@/types/widgets";
+import ContainerControls from "./ContainerControls.vue";
+import RowContainer from "./RowContainer.vue";
+import { ref, computed } from "vue";
+import draggable from "vuedraggable";
+import { TransitionGroup } from "vue";
 
 const props = defineProps<{
-  widget: PageWidget
+  widget: PageWidget;
 }>();
 
 const emit = defineEmits<{
-  (e: 'update', widget: PageWidget): void
-  (e: 'delete'): void
-  (e: 'add-page', position: 'before' | 'after'): void
+  (e: "update", widget: PageWidget): void;
+  (e: "delete"): void;
+  (e: "add-page", position: "before" | "after"): void;
 }>();
 
-const hoverPosition = ref<'top' | 'bottom' | null>(null);
+const hoverPosition = ref<"top" | "bottom" | null>(null);
+
+const rows = computed({
+  get: () => props.widget.children,
+  set: (newRows) => {
+    emit("update", {
+      ...props.widget,
+      children: newRows,
+    });
+  },
+});
 
 const addRowAt = (index: number) => {
   const newRow: RowWidget = {
     id: uuidv4(),
-    type: 'row',
-    children: []
+    type: "row",
+    children: [],
   };
   const newChildren = [...props.widget.children];
   newChildren.splice(index, 0, newRow);
-  emit('update', {
+  emit("update", {
     ...props.widget,
-    children: newChildren
+    children: newChildren,
   });
 };
 
@@ -106,26 +112,28 @@ const addRow = () => {
 };
 
 const updateChild = (updatedChild: RowWidget) => {
-  const childIndex = props.widget.children.findIndex(c => c.id === updatedChild.id);
+  const childIndex = props.widget.children.findIndex(
+    (c) => c.id === updatedChild.id
+  );
   if (childIndex !== -1) {
     const newChildren = [...props.widget.children];
     newChildren[childIndex] = updatedChild;
-    emit('update', {
+    emit("update", {
       ...props.widget,
-      children: newChildren
+      children: newChildren,
     });
   }
 };
 
 const deleteChild = (childId: string) => {
-  emit('update', {
+  emit("update", {
     ...props.widget,
-    children: props.widget.children.filter(c => c.id !== childId)
+    children: props.widget.children.filter((c) => c.id !== childId),
   });
 };
 
-const handleAddRow = (index: number, position: 'before' | 'after') => {
-  const newIndex = position === 'before' ? index : index + 1;
+const handleAddRow = (index: number, position: "before" | "after") => {
+  const newIndex = position === "before" ? index : index + 1;
   addRowAt(newIndex);
 };
 
@@ -133,15 +141,19 @@ const handleMouseMove = (event: MouseEvent) => {
   const element = event.currentTarget as HTMLElement;
   const rect = element.getBoundingClientRect();
   const y = event.clientY - rect.top;
-  
+
   // Show button when mouse is within 40px of top or bottom edge
   if (y < 40) {
-    hoverPosition.value = 'top';
+    hoverPosition.value = "top";
   } else if (y > rect.height - 40) {
-    hoverPosition.value = 'bottom';
+    hoverPosition.value = "bottom";
   } else {
     hoverPosition.value = null;
   }
+};
+
+const handleDragEnd = () => {
+  // Optional: Add any drag end logic here
 };
 </script>
 
@@ -212,4 +224,34 @@ const handleMouseMove = (event: MouseEvent) => {
   @apply flex flex-col items-center p-8 rounded-xl
          hover:bg-blue-50 transition-colors duration-200;
 }
-</style> 
+
+.list-move,
+.list-enter-active {
+  transition: all 0.3s ease;
+}
+
+.list-enter-from,
+.list-leave-to {
+  opacity: 0;
+}
+
+.list-leave-active {
+  position: absolute;
+}
+
+.sortable-ghost {
+  @apply opacity-50 bg-blue-50 border-2 border-dashed border-blue-200
+         transition-all duration-300 transform scale-95;
+}
+
+.sortable-chosen {
+  @apply shadow-xl scale-[1.02] z-10 bg-white
+         transition-all duration-300;
+}
+
+.sortable-drag {
+  @apply shadow-2xl scale-105 z-50 opacity-90 bg-white
+         transition-all duration-300
+         cursor-grabbing;
+}
+</style>

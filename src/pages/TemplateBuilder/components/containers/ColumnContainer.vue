@@ -1,12 +1,6 @@
 <template>
-  <div 
-    class="column-container group"
-    @contextmenu.prevent="showContextMenu"
-  >
-    <div 
-      v-if="widget.children.length === 0"
-      class="empty-column"
-    >
+  <div class="column-container group" @contextmenu.prevent="showContextMenu">
+    <div v-if="widget.children.length === 0" class="empty-column">
       <div class="widget-options">
         <div class="widget-option" @click="addWidget('text')">
           <DocumentTextIcon class="w-8 h-8" />
@@ -18,7 +12,7 @@
         </div>
       </div>
     </div>
-    
+
     <template v-else>
       <component
         v-for="child in widget.children"
@@ -29,32 +23,24 @@
       />
     </template>
 
-    <div 
-      v-if="isEditingWidth"
-      class="width-editor"
-    >
-      <input 
-        type="range" 
-        min="1" 
-        max="12" 
+    <div v-if="isEditingWidth" class="width-editor">
+      <input
+        type="range"
+        min="1"
+        max="12"
         :value="widget.width"
         @input="updateWidth"
         class="width-slider"
       />
-      <div class="width-preview">
-        {{ widget.width }}/12 columns
-      </div>
+      <div class="width-preview">{{ widget.width }}/12 columns</div>
     </div>
 
-    <div 
+    <div
       v-if="contextMenuVisible"
       class="context-menu"
       :style="{ top: contextMenuY + 'px', left: contextMenuX + 'px' }"
     >
-      <button 
-        class="context-menu-item"
-        @click="deleteColumn"
-      >
+      <button class="context-menu-item" @click="deleteColumn">
         <TrashIcon class="w-4 h-4" />
         <span>Delete Column</span>
       </button>
@@ -63,19 +49,24 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { v4 as uuidv4 } from 'uuid';
-import type { ColumnWidget, Widget, WidgetType } from '@/types/widgets';
-import ContainerControls from './ContainerControls.vue';
-import { DocumentTextIcon, PhotoIcon, TrashIcon } from '@heroicons/vue/24/outline';
+import { ref } from "vue";
+import { v4 as uuidv4 } from "uuid";
+import type { ColumnWidget, Widget, WidgetType } from "@/types/widgets";
+import ContainerControls from "./ContainerControls.vue";
+import {
+  DocumentTextIcon,
+  PhotoIcon,
+  TrashIcon,
+  Bars3Icon,
+} from "@heroicons/vue/24/outline";
 
 const props = defineProps<{
-  widget: ColumnWidget
+  widget: ColumnWidget;
 }>();
 
 const emit = defineEmits<{
-  (e: 'update', widget: ColumnWidget): void
-  (e: 'delete'): void
+  (e: "update", widget: ColumnWidget): void;
+  (e: "delete"): void;
 }>();
 
 const isEditingWidth = ref(false);
@@ -85,8 +76,8 @@ const contextMenuY = ref(0);
 
 const getWidgetComponent = (type: WidgetType) => {
   const components = {
-    text: () => import('../widgets/TextWidget.vue'),
-    image: () => import('../widgets/ImageWidget.vue')
+    text: () => import("../widgets/TextWidget.vue"),
+    image: () => import("../widgets/ImageWidget.vue"),
   };
   return components[type];
 };
@@ -95,32 +86,34 @@ const addWidget = (type: WidgetType) => {
   const newWidget: Widget = {
     id: uuidv4(),
     type,
-    content: type === 'text' ? 'Click to edit text' : '',
-    position: { x: 0, y: 0 }
+    content: type === "text" ? "Click to edit text" : "",
+    position: { x: 0, y: 0 },
   };
-  
-  emit('update', {
+
+  emit("update", {
     ...props.widget,
-    children: [...props.widget.children, newWidget]
+    children: [...props.widget.children, newWidget],
   });
 };
 
 const updateWidth = (event: Event) => {
   const input = event.target as HTMLInputElement;
-  emit('update', {
+  emit("update", {
     ...props.widget,
-    width: parseInt(input.value)
+    width: parseInt(input.value),
   });
 };
 
 const updateChild = (updatedChild: Widget) => {
-  const childIndex = props.widget.children.findIndex(c => c.id === updatedChild.id);
+  const childIndex = props.widget.children.findIndex(
+    (c) => c.id === updatedChild.id
+  );
   if (childIndex !== -1) {
     const newChildren = [...props.widget.children];
     newChildren[childIndex] = updatedChild;
-    emit('update', {
+    emit("update", {
       ...props.widget,
-      children: newChildren
+      children: newChildren,
     });
   }
 };
@@ -156,21 +149,21 @@ const showContextMenu = (event: MouseEvent) => {
   const hideMenu = (e: MouseEvent) => {
     if (!e.defaultPrevented) {
       contextMenuVisible.value = false;
-      document.removeEventListener('click', hideMenu);
-      document.removeEventListener('contextmenu', hideMenu);
+      document.removeEventListener("click", hideMenu);
+      document.removeEventListener("contextmenu", hideMenu);
     }
   };
-  
+
   // Add event listeners with a slight delay to avoid immediate trigger
   setTimeout(() => {
-    document.addEventListener('click', hideMenu);
-    document.addEventListener('contextmenu', hideMenu);
+    document.addEventListener("click", hideMenu);
+    document.addEventListener("contextmenu", hideMenu);
   }, 0);
 };
 
 const deleteColumn = () => {
   contextMenuVisible.value = false;
-  emit('delete', props.widget.id);
+  emit("delete", props.widget.id);
 };
 </script>
 
@@ -178,7 +171,13 @@ const deleteColumn = () => {
 @reference "tailwindcss";
 
 .column-container {
-  @apply relative min-h-[100px] hover:bg-gray-50 rounded-lg;
+  @apply relative min-h-[100px] hover:bg-gray-50 rounded-lg
+         transition-all duration-200;
+  cursor: grab;
+}
+
+.column-container:active {
+  cursor: grabbing;
 }
 
 .empty-column {
@@ -230,4 +229,4 @@ const deleteColumn = () => {
          transition-colors duration-200
          cursor-pointer;
 }
-</style> 
+</style>

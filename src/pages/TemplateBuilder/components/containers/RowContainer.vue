@@ -1,45 +1,42 @@
 <template>
-  <div 
+  <div
     class="row-container group"
     :class="{ 'row-empty': widget.children.length === 0 }"
     @mousemove="handleMouseMove"
     @mouseleave="hoverPosition = null"
   >
     <div class="row-controls">
-      <button
-        class="control-btn"
-        @click="showColumnEditor = true"
-      >
+      <button class="control-btn row-drag-handle cursor-move">
+        <Bars3Icon class="w-5 h-5" />
+      </button>
+      <button class="control-btn" @click="showColumnEditor = true">
         <Squares2X2Icon class="w-5 h-5" />
       </button>
-      <button
-        class="control-btn"
-        @click="$emit('delete', widget.id)"
-      >
+      <button class="control-btn" @click="$emit('delete', widget.id)">
         <TrashIcon class="w-5 h-5" />
       </button>
     </div>
 
     <!-- Column Editor Modal -->
-    <div v-if="showColumnEditor" class="modal-overlay" @click="showColumnEditor = false">
+    <div
+      v-if="showColumnEditor"
+      class="modal-overlay"
+      @click="showColumnEditor = false"
+    >
       <div class="modal-content" @click.stop>
         <h3 class="modal-title">Edit Columns</h3>
         <div class="column-options">
-          <button 
-            v-for="count in 3" 
+          <button
+            v-for="count in 3"
             :key="count"
             class="column-option"
-            :class="{ 'active': widget.children.length === count }"
+            :class="{ active: widget.children.length === count }"
             @click="updateColumns(count)"
           >
             <div class="column-preview">
-              <div 
-                v-for="n in count" 
-                :key="n"
-                class="preview-column"
-              />
+              <div v-for="n in count" :key="n" class="preview-column" />
             </div>
-            <span>{{ count }} Column{{ count > 1 ? 's' : '' }}</span>
+            <span>{{ count }} Column{{ count > 1 ? "s" : "" }}</span>
           </button>
         </div>
       </div>
@@ -50,20 +47,14 @@
       <div class="modal-content" @click.stop>
         <h3 class="modal-title text-red-600">Warning</h3>
         <p class="modal-message">
-          Reducing columns will remove content from the rightmost columns. 
-          Are you sure you want to proceed?
+          Reducing columns will remove content from the rightmost columns. Are
+          you sure you want to proceed?
         </p>
         <div class="modal-actions">
-          <button 
-            class="btn-secondary" 
-            @click="cancelColumnUpdate"
-          >
+          <button class="btn-secondary" @click="cancelColumnUpdate">
             Cancel
           </button>
-          <button 
-            class="btn-danger"
-            @click="confirmColumnUpdate"
-          >
+          <button class="btn-danger" @click="confirmColumnUpdate">
             Proceed
           </button>
         </div>
@@ -71,135 +62,163 @@
     </div>
 
     <!-- Top add button -->
-    <div 
-      v-if="hoverPosition === 'top'"
-      class="add-row-indicator top"
-    >
-      <button 
-        class="add-row-btn"
-        @click="$emit('add-row', 'before')"
-      >
+    <div v-if="hoverPosition === 'top'" class="add-row-indicator top">
+      <button class="add-row-btn" @click="$emit('add-row', 'before')">
         <PlusIcon class="w-4 h-4" />
       </button>
     </div>
 
     <!-- Bottom add button -->
-    <div 
-      v-if="hoverPosition === 'bottom'"
-      class="add-row-indicator bottom"
-    >
-      <button 
-        class="add-row-btn"
-        @click="$emit('add-row', 'after')"
-      >
+    <div v-if="hoverPosition === 'bottom'" class="add-row-indicator bottom">
+      <button class="add-row-btn" @click="$emit('add-row', 'after')">
         <PlusIcon class="w-4 h-4" />
       </button>
     </div>
-    
+
     <div v-if="widget.children.length === 0" class="empty-row">
       <div class="column-options">
-        <button 
-          v-for="count in 3" 
+        <button
+          v-for="count in 3"
           :key="count"
           class="column-option"
           @click="addColumn(count)"
         >
           <div class="column-preview">
-            <div 
-              v-for="n in count" 
-              :key="n"
-              class="preview-column"
-            />
+            <div v-for="n in count" :key="n" class="preview-column" />
           </div>
-          <span>{{ count }} Column{{ count > 1 ? 's' : '' }}</span>
+          <span>{{ count }} Column{{ count > 1 ? "s" : "" }}</span>
         </button>
       </div>
     </div>
-    
-    <div v-else class="row-content" :class="`grid-cols-${widget.children.length}`">
-      <ColumnContainer
-        v-for="child in widget.children"
-        :key="child.id"
-        :widget="child"
-        @update="updateChild"
-        @delete="deleteChild"
-      />
+
+    <div v-else class="row-content">
+      <draggable
+        v-model="columns"
+        :class="`grid grid-cols-${widget.children.length} gap-4 w-full`"
+        item-key="id"
+        group="columns"
+        :animation="300"
+        ghost-class="sortable-ghost"
+        chosen-class="sortable-chosen"
+        drag-class="sortable-drag"
+        @end="handleDragEnd"
+      >
+        <template #item="{ element: column }">
+          <TransitionGroup tag="div" class="column-wrapper" name="list">
+            <ColumnContainer
+              :widget="column"
+              @update="updateChild"
+              @delete="deleteChild"
+            />
+          </TransitionGroup>
+        </template>
+      </draggable>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue';
-import { v4 as uuidv4 } from 'uuid';
-import { PlusIcon, Squares2X2Icon, TrashIcon } from '@heroicons/vue/24/outline';
-import type { RowWidget, ColumnWidget } from '@/types/widgets';
-import ColumnContainer from './ColumnContainer.vue';
+import { ref, computed } from "vue";
+import { v4 as uuidv4 } from "uuid";
+import {
+  PlusIcon,
+  Squares2X2Icon,
+  TrashIcon,
+  Bars3Icon,
+} from "@heroicons/vue/24/outline";
+import type { RowWidget, ColumnWidget } from "@/types/widgets";
+import ColumnContainer from "./ColumnContainer.vue";
+import draggable from "vuedraggable";
+import { TransitionGroup } from "vue";
 
 const props = defineProps<{
-  widget: RowWidget
+  widget: RowWidget;
 }>();
 
 const emit = defineEmits<{
-  (e: 'update', widget: RowWidget): void
-  (e: 'delete', id: string): void
-  (e: 'add-row', position: 'before' | 'after'): void
+  (e: "update", widget: RowWidget): void;
+  (e: "delete", id: string): void;
+  (e: "add-row", position: "before" | "after"): void;
 }>();
 
-const hoverPosition = ref<'top' | 'bottom' | null>(null);
+const hoverPosition = ref<"top" | "bottom" | null>(null);
 const showColumnEditor = ref(false);
 const showWarning = ref(false);
 const pendingColumnCount = ref(0);
+
+const columns = computed({
+  get: () => props.widget.children,
+  set: (newColumns) => {
+    // Recalculate column widths when order changes
+    const updatedColumns = newColumns.map((col, index) => ({
+      ...col,
+      width: 12 / newColumns.length,
+    }));
+
+    emit("update", {
+      ...props.widget,
+      children: updatedColumns,
+    });
+  },
+});
 
 const handleMouseMove = (event: MouseEvent) => {
   const element = event.currentTarget as HTMLElement;
   const rect = element.getBoundingClientRect();
   const y = event.clientY - rect.top;
-  
+
   // Show button when mouse is within 20px of top or bottom edge
   if (y < 20) {
-    hoverPosition.value = 'top';
+    hoverPosition.value = "top";
   } else if (y > rect.height - 20) {
-    hoverPosition.value = 'bottom';
+    hoverPosition.value = "bottom";
   } else {
     hoverPosition.value = null;
   }
 };
 
 const addColumn = (count: number) => {
-  const columns: ColumnWidget[] = Array(count).fill(null).map(() => ({
-    id: uuidv4(),
-    type: 'column',
-    width: 12 / count,
-    children: []
-  }));
-  
-  emit('update', {
+  const columns: ColumnWidget[] = Array(count)
+    .fill(null)
+    .map(() => ({
+      id: uuidv4(),
+      type: "column",
+      width: 12 / count,
+      children: [],
+    }));
+
+  emit("update", {
     ...props.widget,
-    children: columns
+    children: columns,
   });
 };
 
 const updateChild = (updatedChild: ColumnWidget) => {
-  const childIndex = props.widget.children.findIndex(c => c.id === updatedChild.id);
+  const childIndex = props.widget.children.findIndex(
+    (c) => c.id === updatedChild.id
+  );
   if (childIndex !== -1) {
     const newChildren = [...props.widget.children];
     newChildren[childIndex] = updatedChild;
-    emit('update', {
+    emit("update", {
       ...props.widget,
-      children: newChildren
+      children: newChildren,
     });
   }
 };
 
 const deleteChild = (childId: string) => {
-  emit('update', {
+  emit("update", {
     ...props.widget,
-    children: props.widget.children.filter(c => c.id !== childId)
+    children: props.widget.children.filter((c) => c.id !== childId),
   });
 };
 
 const updateColumns = (count: number) => {
-  if (count < props.widget.children.length && hasContentInRemovedColumns(count)) {
+  if (
+    count < props.widget.children.length &&
+    hasContentInRemovedColumns(count)
+  ) {
     pendingColumnCount.value = count;
     showWarning.value = true;
   } else {
@@ -209,7 +228,9 @@ const updateColumns = (count: number) => {
 };
 
 const hasContentInRemovedColumns = (newCount: number) => {
-  return props.widget.children.slice(newCount).some(col => col.children.length > 0);
+  return props.widget.children
+    .slice(newCount)
+    .some((col) => col.children.length > 0);
 };
 
 const applyColumnUpdate = (count: number) => {
@@ -221,21 +242,21 @@ const applyColumnUpdate = (count: number) => {
     if (i < currentColumns.length) {
       newColumns.push({
         ...currentColumns[i],
-        width: 12 / count
+        width: 12 / count,
       });
     } else {
       newColumns.push({
         id: uuidv4(),
-        type: 'column',
+        type: "column",
         width: 12 / count,
-        children: []
+        children: [],
       });
     }
   }
 
-  emit('update', {
+  emit("update", {
     ...props.widget,
-    children: newColumns
+    children: newColumns,
   });
 };
 
@@ -248,6 +269,10 @@ const confirmColumnUpdate = () => {
   applyColumnUpdate(pendingColumnCount.value);
   showWarning.value = false;
   pendingColumnCount.value = 0;
+};
+
+const handleDragEnd = () => {
+  // Optional: Add any drag end logic here
 };
 </script>
 
@@ -319,12 +344,31 @@ const confirmColumnUpdate = () => {
 }
 
 .row-content {
-  @apply grid gap-4;
+  @apply w-full;
 }
 
-.grid-cols-1 { @apply grid-cols-1; }
-.grid-cols-2 { @apply grid-cols-2; }
-.grid-cols-3 { @apply grid-cols-3; }
+.column-wrapper {
+  @apply w-full min-h-[100px] transition-all duration-300;
+  cursor: grab;
+}
+
+.column-wrapper:active {
+  cursor: grabbing;
+}
+
+.grid {
+  @apply w-full;
+}
+
+.grid-cols-1 {
+  @apply grid-cols-1;
+}
+.grid-cols-2 {
+  @apply grid-cols-2;
+}
+.grid-cols-3 {
+  @apply grid-cols-3;
+}
 
 .row-controls {
   @apply absolute top-2 right-2 flex gap-1 opacity-0
@@ -377,4 +421,29 @@ const confirmColumnUpdate = () => {
 .column-option.active .preview-column {
   @apply bg-blue-200;
 }
-</style> 
+
+.cursor-move {
+  cursor: move;
+}
+
+.list-move {
+  transition: transform 0.3s ease;
+}
+
+.sortable-ghost {
+  @apply opacity-50 bg-blue-50 border-2 border-dashed border-blue-200
+         transition-all duration-300 transform scale-95;
+}
+
+.sortable-chosen {
+  @apply shadow-xl scale-[1.02] z-10 bg-white
+         transition-all duration-300;
+  cursor: grabbing;
+}
+
+.sortable-drag {
+  @apply shadow-2xl scale-105 z-50 opacity-90 bg-white
+         transition-all duration-300;
+  cursor: grabbing;
+}
+</style>
