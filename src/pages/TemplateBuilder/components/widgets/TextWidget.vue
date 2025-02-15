@@ -2,10 +2,16 @@
   <div
     class="text-widget"
     :class="{ 'is-editing': isEditing }"
-    @mouseenter="showToolbar = true"
+    @mouseenter="handleMouseEnter"
     @mouseleave="handleMouseLeave"
   >
-    <div v-if="editor" v-show="showToolbar || isEditing" class="editor-toolbar">
+    <div
+      v-if="editor"
+      v-show="showToolbar || isEditing"
+      class="editor-toolbar"
+      @mouseenter="handleToolbarMouseEnter"
+      @mouseleave="handleToolbarMouseLeave"
+    >
       <button
         class="toolbar-btn"
         @click="editor.chain().focus().toggleBold().run()"
@@ -78,6 +84,8 @@ const emit = defineEmits<{
 
 const isEditing = ref(false);
 const showToolbar = ref(false);
+const hideToolbarTimeout = ref<number | null>(null);
+const isHoveringToolbar = ref(false);
 
 const editor = useEditor({
   content: props.widget.content,
@@ -105,13 +113,43 @@ const handleBlur = () => {
   emit("editing", false);
 };
 
+const handleMouseEnter = () => {
+  if (hideToolbarTimeout.value) {
+    clearTimeout(hideToolbarTimeout.value);
+    hideToolbarTimeout.value = null;
+  }
+  showToolbar.value = true;
+};
+
 const handleMouseLeave = () => {
+  if (!isEditing.value && !isHoveringToolbar.value) {
+    hideToolbarTimeout.value = window.setTimeout(() => {
+      showToolbar.value = false;
+    }, 150);
+  }
+};
+
+const handleToolbarMouseEnter = () => {
+  isHoveringToolbar.value = true;
+  if (hideToolbarTimeout.value) {
+    clearTimeout(hideToolbarTimeout.value);
+    hideToolbarTimeout.value = null;
+  }
+};
+
+const handleToolbarMouseLeave = () => {
+  isHoveringToolbar.value = false;
   if (!isEditing.value) {
-    showToolbar.value = false;
+    hideToolbarTimeout.value = window.setTimeout(() => {
+      showToolbar.value = false;
+    }, 150);
   }
 };
 
 onBeforeUnmount(() => {
+  if (hideToolbarTimeout.value) {
+    clearTimeout(hideToolbarTimeout.value);
+  }
   editor.value?.destroy();
 });
 
@@ -130,11 +168,11 @@ watch(
 @reference "tailwindcss";
 
 .text-widget {
-  @apply relative w-full min-h-[2rem] group;
+  @apply relative w-full min-h-[2rem];
 }
 
 .text-widget.is-editing {
-  @apply ring-2 ring-blue-500 ring-opacity-50 rounded-lg;
+  @apply ring-2 ring-blue-500 rounded-lg;
 }
 
 .editor-content :deep(.ProseMirror) {
@@ -146,7 +184,13 @@ watch(
 .editor-toolbar {
   @apply absolute -top-12 left-1/2 -translate-x-1/2
          bg-white rounded-lg shadow-lg border border-gray-200
-         flex items-center gap-1 p-1 z-10;
+         flex items-center gap-1 p-1 z-10
+         transition-opacity duration-200;
+}
+
+.editor-toolbar::after {
+  @apply content-[''] absolute left-0 right-0 
+         h-3 -bottom-3;
 }
 
 .toolbar-btn {
