@@ -1,34 +1,44 @@
 <template>
   <div class="sidebar">
-    <div class="sidebar-header">
-      <h2 class="sidebar-title">Add Elements</h2>
-    </div>
-    <div class="sidebar-content">
-      <div class="widgets-section">
-        <h3 class="section-title">Basic</h3>
-        <div class="widgets-grid">
-          <div
-            v-for="widget in basicWidgets"
-            :key="widget.type"
-            class="widget-option"
-            draggable="true"
-            @dragstart="handleDragStart($event, widget.type)"
-          >
-            <TransitionGroup name="fade">
-              <div
-                :key="widget.type"
-                class="w-full h-full flex items-center gap-3"
-              >
-                <div class="widget-icon">
-                  <component :is="widget.icon" class="w-5 h-5" />
+    <template v-if="activeWidget">
+      <component
+        :is="getSettingsComponent(activeWidget.type)"
+        :widget="activeWidget"
+        @update="handleSettingsUpdate"
+        @back="activeWidget = null"
+      />
+    </template>
+    <template v-else>
+      <div class="sidebar-header">
+        <h2 class="sidebar-title">Add Elements</h2>
+      </div>
+      <div class="sidebar-content">
+        <div class="widgets-section">
+          <h3 class="section-title">Basic</h3>
+          <div class="widgets-grid">
+            <div
+              v-for="widget in basicWidgets"
+              :key="widget.type"
+              class="widget-option"
+              draggable="true"
+              @dragstart="handleDragStart($event, widget.type)"
+            >
+              <TransitionGroup name="fade">
+                <div
+                  :key="widget.type"
+                  class="w-full h-full flex items-center gap-3"
+                >
+                  <div class="widget-icon">
+                    <component :is="widget.icon" class="w-5 h-5" />
+                  </div>
+                  <span class="widget-label">{{ widget.label }}</span>
                 </div>
-                <span class="widget-label">{{ widget.label }}</span>
-              </div>
-            </TransitionGroup>
+              </TransitionGroup>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+    </template>
   </div>
 </template>
 
@@ -43,10 +53,11 @@ import {
   MapIcon,
   RectangleStackIcon,
 } from "@heroicons/vue/24/outline";
-import type { WidgetType } from "@/types/widgets";
+import type { WidgetType, Widget } from "@/types/widgets";
+import { ref } from "vue";
+import ImageSettings from "./settings/ImageSettings.vue";
 
 const basicWidgets = [
-  { type: "heading", label: "Heading", icon: RectangleStackIcon },
   { type: "text", label: "Text", icon: DocumentTextIcon },
   { type: "image", label: "Image", icon: PhotoIcon },
   { type: "video", label: "Video", icon: VideoCameraIcon },
@@ -57,12 +68,32 @@ const basicWidgets = [
   { type: "icon", label: "Icon", icon: StarIcon },
 ] as const;
 
+const activeWidget = ref<Widget | null>(null);
+
+const getSettingsComponent = (type: string) => {
+  const components = {
+    image: ImageSettings,
+    // Add other widget settings components here
+  };
+  return components[type as keyof typeof components];
+};
+
+const handleSettingsUpdate = (updatedWidget: Widget) => {
+  emit("update-widget", updatedWidget);
+};
+
 const handleDragStart = (event: DragEvent, type: WidgetType) => {
   if (event.dataTransfer) {
     event.dataTransfer.effectAllowed = "copy";
     event.dataTransfer.setData("widget-type", type);
   }
 };
+
+defineExpose({
+  showSettings: (widget: Widget) => {
+    activeWidget.value = widget;
+  },
+});
 </script>
 
 <style scoped>

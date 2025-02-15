@@ -19,7 +19,7 @@
       <component
         v-for="child in widget.children"
         :key="child.id"
-        :is="getWidgetComponent(child.type)"
+        :is="getWidgetComponent(child.type as WidgetType)"
         :widget="child"
         @update="updateChild"
         @editing="handleChildEditing"
@@ -40,15 +40,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, markRaw } from "vue";
-import { v4 as uuidv4 } from "uuid";
 import type { ColumnWidget, Widget, WidgetType } from "@/types/widgets";
-import {
-  DocumentTextIcon,
-  PhotoIcon,
-  TrashIcon,
-  PlusCircleIcon,
-} from "@heroicons/vue/24/outline";
+import { PlusCircleIcon, TrashIcon } from "@heroicons/vue/24/outline";
+import { v4 as uuidv4 } from "uuid";
+import { markRaw, ref } from "vue";
+import ImageWidget from "../widgets/ImageWidget.vue";
 import TextWidget from "../widgets/TextWidget.vue";
 
 const props = defineProps<{
@@ -67,10 +63,12 @@ const contextMenuY = ref(0);
 const isDragOver = ref(false);
 const isEditing = ref(false);
 
+console.log(markRaw(ImageWidget));
+
 const getWidgetComponent = (type: WidgetType) => {
   const components = {
     text: markRaw(TextWidget),
-    image: () => import("../widgets/ImageWidget.vue"),
+    image: markRaw(ImageWidget),
   };
   return components[type];
 };
