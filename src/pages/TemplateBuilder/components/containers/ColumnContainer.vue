@@ -53,8 +53,9 @@ const props = defineProps<{
 
 const emit = defineEmits<{
   (e: "update", widget: ColumnWidget): void;
-  (e: "delete"): void;
+  (e: "delete", widgetID: string): void;
   (e: "show-widgets"): void;
+  (e: "editing", isEditing: boolean): void;
 }>();
 
 const contextMenuVisible = ref(false);
@@ -69,16 +70,19 @@ const getWidgetComponent = (type: WidgetType) => {
   const components = {
     text: markRaw(TextWidget),
     image: markRaw(ImageWidget),
-  };
-  return components[type];
+  } as const;
+
+  return components[type as keyof typeof components];
 };
 
 const addWidget = (type: WidgetType) => {
+  if (type !== "text" && type !== "image") return;
+
   const newWidget = {
     id: uuidv4(),
     type,
     content: type === "text" ? "<p>Click to edit text</p>" : "",
-  };
+  } as const;
 
   emit("update", {
     ...props.widget,

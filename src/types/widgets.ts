@@ -9,9 +9,11 @@ export type WidgetType =
   | "map"
   | "icon";
 
+export type ContainerType = "column" | "row" | "page";
+
 export interface BaseWidget {
   id: string;
-  type: WidgetType;
+  type: WidgetType | ContainerType;
   position?: {
     x: number;
     y: number;
