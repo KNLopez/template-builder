@@ -22,7 +22,8 @@ export interface BaseWidget {
 
 export interface ContentWidget extends BaseWidget {
   type: "text" | "image";
-  content: any;
+  content: string;
+  alt?: string; // for images
 }
 
 export interface ColumnWidget extends BaseWidget {

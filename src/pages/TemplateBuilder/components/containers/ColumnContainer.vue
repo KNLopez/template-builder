@@ -19,8 +19,8 @@
       <component
         v-for="child in widget.children"
         :key="child.id"
-        :is="getWidgetComponent(child.type as WidgetType)"
-        :widget="child"
+        :is="getWidgetComponent(child.type)"
+        :widget="child as ContentWidget"
         @update="updateChild"
         @editing="handleChildEditing"
       />
@@ -40,7 +40,7 @@
 </template>
 
 <script setup lang="ts">
-import type { ColumnWidget, Widget, WidgetType } from "@/types/widgets";
+import type { ColumnWidget, ContentWidget, WidgetType } from "@/types/widgets";
 import { PlusCircleIcon, TrashIcon } from "@heroicons/vue/24/outline";
 import { v4 as uuidv4 } from "uuid";
 import { markRaw, ref } from "vue";
@@ -98,7 +98,7 @@ const updateWidth = (event: Event) => {
   });
 };
 
-const updateChild = (updatedChild: Widget) => {
+const updateChild = (updatedChild: ContentWidget) => {
   const childIndex = props.widget.children.findIndex(
     (c) => c.id === updatedChild.id
   );
